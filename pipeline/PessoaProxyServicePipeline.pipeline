@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:pipelineEntry xmlns:con="http://www.bea.com/wli/sb/pipeline/config" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:con1="http://www.bea.com/wli/sb/stages/config" xmlns:con2="http://www.bea.com/wli/sb/stages/transform/config">
+    <con:coreEntry>
+        <con:binding type="SOAP" isSoap12="false" xsi:type="con:SoapBindingType">
+            <con:wsdl ref="ServicebusXquery/wsdl/PessoaService"/>
+            <con:binding>
+                <con:name>execute_bind</con:name>
+                <con:namespace>http://www.middleware4you.com/pessoa</con:namespace>
+            </con:binding>
+        </con:binding>
+        <con:xqConfiguration>
+            <con:snippetVersion>1.0</con:snippetVersion>
+        </con:xqConfiguration>
+    </con:coreEntry>
+    <con:router>
+        <con:pipeline type="request" name="request-7f000101.N7d1a1d10.0.175afc74a8b.N7f9b">
+            <con:stage id="_StageId-7f000101.N7d1a1d10.0.175afc74a8b.N7f99" name="StageRequest">
+                <con:context>
+                    <con1:userNsDecl prefix="pes" namespace="http://www.middleware4you.com/pessoa"/>
+                </con:context>
+                <con:actions>
+                    <con2:assign varName="request_externo">
+                        <con1:id>_ActionId-7f000101.N7d1a1d10.0.175afc74a8b.N7f65</con1:id>
+                        <con2:expr>
+                            <con1:xqueryTransform>
+                                <con1:resource ref="ServicebusXquery/xQuery/xq_request_external"/>
+                                <con1:param name="nome">
+                                    <con1:path>$body/pes:string/text()</con1:path>
+                                </con1:param>
+                            </con1:xqueryTransform>
+                        </con2:expr>
+                    </con2:assign>
+                </con:actions>
+            </con:stage>
+            <con:stage id="_StageId-7f000101.N7d1a1d10.0.175afc74a8b.N7f2f" name="Stage2">
+                <con:context/>
+                <con:actions>
+                    <con2:wsCallout>
+                        <con1:id>_ActionId-7f000101.N7d1a1d10.0.175afc74a8b.N7f32</con1:id>
+                        <con2:service ref="ServicebusXquery/business/BusinessServiceExternal" xsi:type="ref:BusinessServiceRef" xmlns:ref="http://www.bea.com/wli/sb/reference"/>
+                        <con2:operation>listaClienteOperation</con2:operation>
+                        <con2:request>
+                            <con2:body wrapped="false">request_externo</con2:body>
+                        </con2:request>
+                        <con2:response>
+                            <con2:body wrapped="false">response_externo</con2:body>
+                        </con2:response>
+                        <con2:requestTransform/>
+                        <con2:responseTransform/>
+                    </con2:wsCallout>
+                </con:actions>
+            </con:stage>
+        </con:pipeline>
+        <con:pipeline type="response" name="response-7f000101.N7d1a1d10.0.175afc74a8b.N7f9a">
+            <con:stage id="_StageId-7f000101.N7d1a1d10.0.175afc74a8b.N7f98" name="StageResponse">
+                <con:context>
+                    <con1:userNsDecl prefix="nm0" namespace="http://www.middleware4you.com/pessoa"/>
+                </con:context>
+                <con:actions>
+                    <con2:assign varName="responseEdit">
+                        <con1:id>_ActionId-7f000101.N7d1a1d10.0.175afc74a8b.N7ecb</con1:id>
+                        <con2:expr>
+                            <con1:xqueryTransform>
+                                <con1:resource ref="ServicebusXquery/xQuery/xq_response_internal"/>
+                                <con1:param name="nome">
+                                    <con1:path>$response_externo/nm0:pessoas/nm0:pessoa/nm0:nome/text()</con1:path>
+                                </con1:param>
+                                <con1:param name="sobrenome">
+                                    <con1:path>$response_externo/nm0:pessoas/nm0:pessoa/nm0:sobrenome/text()</con1:path>
+                                </con1:param>
+                                <con1:param name="grau">
+                                    <con1:path>$response_externo/nm0:pessoas/nm0:pessoa/nm0:grauDeInstrucao/text()</con1:path>
+                                </con1:param>
+                            </con1:xqueryTransform>
+                        </con2:expr>
+                    </con2:assign>
+                </con:actions>
+            </con:stage>
+            <con:stage id="_StageId-7f000101.N7d1a1d10.0.175afc74a8b.N7e62" name="Stage1">
+                <con:context/>
+                <con:actions>
+                    <con2:replace contents-only="true" varName="body">
+                        <con1:id>_ActionId-7f000101.N7d1a1d10.0.175afc74a8b.N7e64</con1:id>
+                        <con2:expr>
+                            <con1:xqueryText>$responseEdit</con1:xqueryText>
+                        </con2:expr>
+                    </con2:replace>
+                </con:actions>
+            </con:stage>
+        </con:pipeline>
+        <con:flow>
+            <con:branch-node type="operation" id="_FlowId-7f000101.N7d1a1d10.0.175afc74a8b.N7fcd" name="BranchNode1">
+                <con:context/>
+                <con:branch-table>
+                    <con:branch name="retornaDadosPessoa">
+                        <con:operator>equals</con:operator>
+                        <con:value/>
+                        <con:flow>
+                            <con:pipeline-node name="Pipeline Pair Node1">
+                                <con:request>request-7f000101.N7d1a1d10.0.175afc74a8b.N7f9b</con:request>
+                                <con:response>response-7f000101.N7d1a1d10.0.175afc74a8b.N7f9a</con:response>
+                            </con:pipeline-node>
+                        </con:flow>
+                    </con:branch>
+                    <con:default-branch>
+                        <con:flow/>
+                    </con:default-branch>
+                </con:branch-table>
+            </con:branch-node>
+        </con:flow>
+        <con:shared-variables>
+            <con:variable>request_externo</con:variable>
+            <con:variable>response_externo</con:variable>
+            <con:variable>responseEdit</con:variable>
+        </con:shared-variables>
+    </con:router>
+</con:pipelineEntry>
